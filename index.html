@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FII x Imóvel Direto — Simulador Comparativo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --verde-escuro: #003b49;
+    --verde-medio: #2b7e7e;
+    --verde-claro: #9fc4c7;
+    --verde-claro-bg: #eaf2f1;
+    --bg: #f4f9fc;
+    --surface: #fff;
+    --surface-alt: #eaf1f2;
+    --text: #0b2a32;
+    --text-muted: #5c7278;
+    --line: #d9e4e4;
+    --dourado: #c99a3c;
+    --dourado-bg: #fbf4e6;
+    --font-display: "Fraunces", serif;
+    --font-body: "Manrope", sans-serif;
+    --font-mono: "IBM Plex Mono", monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .page { min-height: 100vh; padding: 0 0 32px; }
+
+  /* HEADER */
+  .brand-header {
+    background: var(--verde-escuro);
+    align-items: center; gap: 16px;
+    padding: 16px 20px; display: flex;
+  }
+  .brand-logo-img { width: auto; height: 30px; display: block; }
+  .brand-text { border-left: 1px solid #9fc4c759; flex-direction: column; padding-left: 16px; line-height: 1.25; display: flex; }
+  .brand-name { color: #f4f9fc; letter-spacing: .03em; font-size: 13px; font-weight: 700; }
+  .brand-tag { color: var(--verde-claro); font-family: var(--font-mono); letter-spacing: .1em; text-transform: uppercase; margin-top: 2px; font-size: 11px; }
+
+  /* PROGRESS */
+  .progress-wrap { max-width: 640px; margin: 28px auto 0; padding: 0 20px; }
+  .progress-label {
+    color: var(--text-muted); font-family: var(--font-mono);
+    letter-spacing: .05em; text-transform: uppercase;
+    justify-content: space-between; margin-bottom: 8px; font-size: 11px; display: flex;
+  }
+  .progress-track { background: var(--surface-alt); border-radius: 2px; height: 4px; overflow: hidden; }
+  .progress-value { border-radius: inherit; background: linear-gradient(90deg, var(--verde-medio), var(--verde-claro)); height: 100%; transition: width .3s; }
+
+  /* CARD */
+  .card-wrap { max-width: 640px; margin: 20px auto 0; padding: 0 20px; }
+  .card {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 32px 28px;
+    box-shadow: 0 1px 2px #003b490d, 0 8px 24px #003b4912;
+  }
+
+  /* STEP */
+  .step { display: none; }
+  .step.visible { display: block; animation: step-enter .28s both; }
+  @keyframes step-enter { 0% { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .q-eyebrow {
+    color: var(--verde-medio); font-family: var(--font-mono);
+    letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; font-size: 11px; display: block;
+  }
+  .q-title {
+    color: var(--text); font-family: var(--font-display);
+    margin: 0 0 8px; font-size: 23px; font-weight: 500; line-height: 1.3;
+  }
+  .q-sub { max-width: 56ch; margin: 0 0 26px; font-size: 13.5px; color: var(--text-muted); }
+
+  /* FIELDS */
+  .field-block { margin-bottom: 20px; display: block; }
+  .field-label {
+    color: var(--text-muted); font-family: var(--font-mono);
+    letter-spacing: .02em; margin-bottom: 7px; font-size: 12px; display: block;
+  }
+  .prefix-input { position: relative; }
+  .prefix {
+    z-index: 1; pointer-events: none; font-size: 20px;
+    position: absolute; top: 50%; left: 14px; transform: translateY(-50%);
+    color: var(--text-muted); font-family: var(--font-mono);
+  }
+  .field {
+    border: 1px solid var(--line);
+    background: var(--surface-alt);
+    width: 100%; color: var(--text);
+    font-family: var(--font-mono);
+    border-radius: 8px; outline: none;
+    padding: 14px 16px; font-size: 20px;
+    transition: border-color .15s, background .15s;
+  }
+  .field-money { padding-left: 44px; }
+  .field:focus { border-color: var(--verde-medio); background: var(--surface); box-shadow: none; }
+  .field::placeholder { color: var(--text-muted); opacity: .5; }
+  .hint { color: var(--text-muted); margin-top: 7px; font-size: 12px; line-height: 1.4; }
+
+  /* dropdown / select */
+  .select-wrap { position: relative; }
+  .select-wrap select {
+    appearance: none; -webkit-appearance: none;
+    border: 1px solid var(--line); background: var(--surface-alt);
+    width: 100%; color: var(--text); font-family: var(--font-mono);
+    border-radius: 8px; outline: none; padding: 14px 16px; font-size: 18px;
+    cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  .select-wrap select:focus { border-color: var(--verde-medio); background: var(--surface); }
+  .select-wrap::after {
+    content: "▾"; position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-family: var(--font-mono); pointer-events: none; font-size: 16px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    cursor: pointer; border: 0; border-radius: 8px;
+    padding: 15px 20px; font-size: 14.5px; font-weight: 700;
+    transition: transform .15s, box-shadow .15s, background .15s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px #003b4926; }
+  .btn-primary { background: var(--verde-medio); color: #fff; }
+  .btn-primary:hover { background: #246a6a; }
+  .btn-ghost { color: var(--text-muted); background: 0 0; border: 1px solid var(--line); }
+  .btn-ghost:hover { border-color: var(--verde-medio); color: var(--verde-medio); }
+  .btn-row { gap: 12px; margin-top: 28px; display: flex; }
+  .btn-row .btn { flex: 1; text-align: center; }
+
+  /* RESULT CARD */
+  .result-card {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    padding: 32px 28px;
+    box-shadow: 0 1px 2px #003b490d, 0 8px 24px #003b4912;
+  }
+  .result-head { text-align: center; margin-bottom: 6px; }
+  .result-eyebrow { color: var(--verde-medio); font-family: var(--font-mono); letter-spacing: .1em; text-transform: uppercase; font-size: 11px; }
+  .result-title { color: var(--text); font-family: var(--font-display); margin: 8px 0 4px; font-size: 26px; font-weight: 500; }
+  .result-msg { max-width: 52ch; color: var(--text-muted); margin: 0 auto 28px; font-size: 14px; }
+
+  /* VERDICT */
+  .verdict {
+    display: flex; align-items: center; gap: 16px;
+    border: 1.5px solid var(--verde-medio); background: var(--verde-claro-bg);
+    border-radius: 12px; padding: 18px 20px; margin-bottom: 22px;
+  }
+  .verdict-badge {
+    background: var(--verde-escuro); color: #fff; border-radius: 9px;
+    font-family: var(--font-display); font-size: 13px; font-weight: 600;
+    padding: 10px 14px; text-align: center; flex-shrink: 0; line-height: 1.2;
+  }
+  .verdict-badge small { font-size: 9px; font-family: var(--font-mono); display: block; opacity: .8; }
+  .verdict-text { flex: 1; font-size: 14px; color: var(--verde-escuro); line-height: 1.5; }
+  .verdict-text b { font-size: 15px; }
+
+  /* SIDE-BY-SIDE PILLARS */
+  .pillars { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+  .pillar { border-radius: 10px; padding: 18px 18px 8px; }
+  .pillar-fii { background: var(--verde-claro-bg); border: 1px solid #c9dfd9; }
+  .pillar-imovel { background: var(--dourado-bg); border: 1px solid #ecdcc0; }
+  .pillar-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .pillar-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .pillar-fii .pillar-dot { background: var(--verde-medio); }
+  .pillar-imovel .pillar-dot { background: var(--dourado); }
+  .pillar-title { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--text); }
+  .pillar-stat { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,.06); }
+  .pillar-stat:last-child { border-bottom: none; }
+  .pillar-label { color: var(--text-muted); font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; }
+  .pillar-value { font-family: var(--font-display); font-size: 19px; font-weight: 600; color: var(--verde-escuro); margin-top: 2px; }
+  .pillar-sub { font-size: 11px; color: var(--text-muted); }
+
+  /* WINNER HIGHLIGHT */
+  .pillar.winner { transform: translateY(-2px); box-shadow: 0 8px 20px #003b4914; }
+  .pillar-fii.winner { border-color: var(--verde-medio); }
+  .pillar-imovel.winner { border-color: var(--dourado); }
+  .pillar-tag {
+    display: inline-block; font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em; background: var(--verde-escuro); color: #fff;
+    padding: 3px 8px; border-radius: 20px; margin-bottom: 8px;
+  }
+  .pillar-imovel .pillar-tag { background: var(--dourado); color: #3a2d10; }
+
+  /* EXEC GRID */
+  .exec-grid { grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 22px; display: grid; }
+  .exec-card { border: 1px solid var(--line); background: var(--surface); border-radius: 9px; min-width: 0; padding: 16px; }
+  .exec-card .e-label { color: var(--text-muted); font-family: var(--font-mono); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 6px; font-size: 11px; }
+  .exec-card .e-value { color: var(--verde-escuro); font-family: var(--font-display); font-size: 21px; font-weight: 500; line-height: 1.25; }
+  .exec-card .e-sub { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+
+  /* CHART */
+  .chart-card {
+    border: 1px solid var(--line); background: var(--surface);
+    border-radius: 8px; margin-bottom: 22px; padding: 22px 18px 16px;
+  }
+  .chart-card svg text { fill: var(--text-muted); font-family: var(--font-mono); }
+  .legend { color: var(--text-muted); font-family: var(--font-mono); flex-wrap: wrap; gap: 16px; margin-bottom: 10px; font-size: 11px; display: flex; }
+  .dot { border-radius: 50%; width: 7px; height: 7px; margin-right: 4px; display: inline-block; }
+
+  /* INSIGHTS */
+  .insights { gap: 12px; margin-bottom: 24px; display: grid; }
+  .insight-card {
+    background: var(--verde-claro-bg); color: var(--verde-escuro);
+    border: 1px solid #d6e6dc; border-radius: 9px;
+    gap: 10px; padding: 15px 16px; font-size: 13.5px; line-height: 1.5; display: flex;
+  }
+  .insight-card .ico { width: 18px; height: 18px; color: var(--verde-medio); flex-shrink: 0; margin-top: 1px; font-weight: 700; display: block; }
+
+  /* ASSUMPTIONS TABLE */
+  .assumptions { border: 1px solid var(--line); border-radius: 9px; margin-bottom: 24px; overflow: hidden; }
+  .assumptions-title {
+    padding: 12px 16px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--text-muted); background: var(--surface-alt); border-bottom: 1px solid var(--line);
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  }
+  .assumptions-title .chev { transition: transform .2s; }
+  .assumptions.open .assumptions-title .chev { transform: rotate(90deg); }
+  .assumptions-body { display: none; padding: 16px; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .assumptions.open .assumptions-body { display: grid; }
+  .assump-group h4 { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); margin-bottom: 8px; }
+  .assump-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; font-size: 12.5px; }
+  .assump-row .avl { color: var(--text-muted); }
+  .assump-row input[type=number] {
+    width: 78px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
+    font-family: var(--font-mono); font-size: 13px; color: var(--text); padding: 4px 6px; text-align: right;
+  }
+  .assump-row input[type=number]:focus { border-color: var(--verde-medio); outline: none; }
+  .assump-edit {
+    margin-top: 4px; background: none; border: 0; color: var(--verde-medio); cursor: pointer;
+    font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600;
+  }
+  .assump-edit:hover { text-decoration: underline; }
+
+  /* CTA */
+  .internal-card-link {
+    border: 1.5px solid var(--verde-medio); background: var(--verde-claro-bg);
+    width: 100%; color: var(--verde-escuro); letter-spacing: .01em;
+    border-radius: 12px; justify-content: center; align-items: center; gap: 8px;
+    margin: 18px auto 8px; padding: 14px 18px; font-size: 15px; font-weight: 700;
+    text-decoration: none; transition: background .15s, color .15s; display: flex;
+  }
+  .internal-card-link:hover { background: var(--verde-medio); color: #fff; }
+
+  .methodology {
+    text-align: left; background: #9fc4c714; border: 1px solid #9fc4c74d;
+    border-radius: 10px; align-items: center; gap: 10px; padding: 10px 12px; display: flex;
+    margin-bottom: 22px;
+  }
+  .methodology-icon {
+    background: #9fc4c726; border-radius: 50%; flex-shrink: 0;
+    justify-content: center; align-items: center; width: 26px; height: 26px; display: flex;
+  }
+  .methodology-text { color: var(--text); font-size: 12.5px; font-weight: 600; line-height: 1.35; }
+
+  .disclaimer { border-top: 1px solid var(--line); color: var(--text-muted); margin-top: 34px; padding-top: 16px; font-size: 11px; line-height: 1.6; text-align: center; }
+
+  /* RESULT SUMMARY */
+  .result-summary {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 22px;
+  }
+  .result-summary .rs-card {
+    border: 1px solid var(--line); background: var(--surface-alt); border-radius: 9px;
+    padding: 13px 15px; text-align: center;
+  }
+  .result-summary .rs-label {
+    color: var(--text-muted); font-family: var(--font-mono); font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px;
+  }
+  .result-summary .rs-value { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--verde-escuro); }
+
+  .btn-refazer {
+    color: var(--verde-medio); background: 0 0; border: 1px solid var(--verde-medio);
+    width: 100%; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700;
+    font-family: var(--font-body); cursor: pointer; margin-top: 12px; transition: all .15s;
+  }
+  .btn-refazer:hover { background: var(--verde-claro-bg); }
+
+  .section-divider {
+    color: var(--verde-medio); font-family: var(--font-mono);
+    letter-spacing: .09em; text-transform: uppercase; align-items: center; gap: 8px;
+    margin: 28px 0 12px; font-size: 11px; display: flex;
+  }
+  .section-divider:after { background: var(--line); content: ""; flex: 1; height: 1px; }
+
+  /* SHARE BUTTONS */
+  .share-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+  .share-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    font-family: var(--font-body); text-decoration: none; transition: all .15s; cursor: pointer;
+  }
+  .share-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+  .share-whatsapp { background: #25d366; color: #fff; }
+  .share-whatsapp:hover { background: #1da851; }
+  .share-email { background: var(--verde-medio); color: #fff; }
+  .share-email:hover { background: #246a6a; }
+
+  .pdf-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    font-family: var(--font-body); text-decoration: none; cursor: pointer;
+    background: var(--verde-escuro); color: #fff; border: none; transition: all .15s;
+  }
+  .pdf-btn:hover { background: #002833; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+
+  /* ============ LANDING / HERO ============ */
+  .hero {
+    position: relative; overflow: hidden;
+    color: #f4f9fc; padding: 64px 0 56px;
+  }
+  .hero-bg,
+  .hero-overlay,
+  .hero-skyline { position: absolute; inset: 0; }
+  .hero-bg {
+    background-image: linear-gradient(150deg, #002b36 0%, #0a4a52 62%, #105a5e 100%), url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=80');
+    background-size: cover; background-position: center 30%;
+    background-blend-mode: multiply;
+  }
+  .hero-overlay {
+    background:
+      linear-gradient(100deg, rgba(0,43,54,0.94) 0%, rgba(0,59,73,0.74) 45%, rgba(0,59,73,0.34) 100%),
+      radial-gradient(circle at 88% 85%, rgba(201,154,60,0.16) 0%, transparent 30%);
+  }
+  .hero-skyline { inset: auto 0 0 0; opacity: 0.6; pointer-events: none; }
+  .hero-skyline svg { display: block; width: 100%; height: 110px; }
+  .hero-inner { position: relative; max-width: 640px; margin: 0 auto; padding: 0 28px; }
+
+  /* hero CTA — destaque dourado no estilo da referência */
+  .hero .btn-primary {
+    background: linear-gradient(105deg, var(--verde-medio) 0%, var(--verde-claro) 130%);
+    padding: 16px 30px; font-size: 15px;
+  }
+  .hero .btn-primary:hover { background: #246a6a; box-shadow: 0 10px 24px rgba(0,0,0,0.18); }
+  .hero-etiqueta {
+    display: inline-block; margin: 0 0 14px; color: var(--verde-claro);
+    font-size: 11px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase;
+  }
+  .hero-titulo {
+    margin: 0 0 14px; color: #f4f9fc; font-family: var(--font-display);
+    font-size: clamp(30px, 4.5vw, 42px); font-weight: 600; letter-spacing: -0.4px; line-height: 1.14;
+  }
+  .hero-titulo span { color: #d9c08a; }
+  .hero-desc { max-width: 480px; margin: 0 0 18px; color: rgba(244,249,252,0.85); font-size: 14.5px; line-height: 1.65; }
+  .hero-lista { display: grid; gap: 10px; margin: 0 0 16px; padding: 0; list-style: none; }
+  .hero-lista li { display: flex; align-items: flex-start; gap: 10px; color: #f4f9fc; font-size: 13.5px; line-height: 1.5; }
+  .hero-check {
+    display: inline-flex; flex: 0 0 19px; width: 19px; height: 19px;
+    align-items: center; justify-content: center; margin-top: 1px; border-radius: 50%;
+    background: var(--verde-medio); color: #fff; font-size: 11px; font-weight: 700;
+  }
+  .hero-bonus {
+    display: inline-flex; align-items: center; gap: 7px; flex-wrap: wrap; max-width: 100%;
+    margin: 0 0 22px; padding: 8px 12px; border: 1px solid rgba(244,249,252,0.24);
+    background: rgba(0,0,0,0.18); color: #f4f9fc; font-size: 12px; line-height: 1.45;
+  }
+  .hero-bonus strong { color: #d9c08a; }
+  .hero .btn-row { margin-top: 0; }
+  .hero .btn-primary { padding: 16px 30px; font-size: 15px; background: var(--verde-medio); }
+  .hero .btn-primary:hover { background: #246a6a; }
+
+  /* CALC CARD overload (landing) */
+  .calc-card { max-width: 640px; margin: 44px auto 0; }
+  .calc-kicker { text-align: center; }
+  .calc-kicker .q-eyebrow { margin-bottom: 6px; }
+  .calc-kicker .q-title { font-size: 26px; }
+  .calc-kicker .q-sub { margin-left: auto; margin-right: auto; }
+
+  /* BENEFITS */
+  .benefits { max-width: 1080px; margin: 56px auto 20px; padding: 0 20px; }
+  .benefits-head { text-align: center; margin-bottom: 30px; }
+  .section-kicker {
+    color: var(--verde-medio); font-family: var(--font-mono); letter-spacing: .1em;
+    text-transform: uppercase; font-size: 11px; display: block; margin-bottom: 8px;
+  }
+  .benefits-head h2 {
+    color: var(--text); font-family: var(--font-display); font-size: 28px; font-weight: 500; margin: 0 0 8px;
+  }
+  .benefits-head p { max-width: 46ch; margin: 0 auto; color: var(--text-muted); font-size: 14px; }
+  .benefits-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; }
+  .benefit-card {
+    position: relative; min-height: 190px; padding: 24px 21px; overflow: hidden;
+    border: 1px solid rgba(11,42,50,0.08); border-bottom-width: 0; border-radius: 9px;
+    background: rgba(255,255,255,0.88); box-shadow: 0 9px 26px rgba(11,42,50,0.04);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .benefit-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--cor, var(--verde-medio));
+  }
+  .benefit-card:hover { transform: translateY(-4px); box-shadow: 0 16px 35px rgba(11,42,50,0.09); }
+  .benefit-icone {
+    display: flex; width: 48px; height: 48px; border-radius: 12px; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--cor, var(--verde-medio)) 13%, transparent);
+    color: var(--cor, var(--verde-medio)); margin-bottom: 16px;
+  }
+  .benefit-icone svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .benefit-card h3 { color: var(--text); font-size: 17px; font-weight: 800; margin: 0 0 6px; line-height: 1.35; }
+  .benefit-card p { color: var(--text-muted); font-size: 13px; line-height: 1.65; margin: 0; }
+
+  /* ============ FOOTER ============ */
+  .site-footer { background: var(--verde-escuro); color: #dbeae9; margin-top: 56px; }
+  .footer-inner { max-width: 1080px; margin: 0 auto; padding: 44px 20px 40px; }
+  .footer-top { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .footer-logo { display: flex; align-items: center; gap: 14px; }
+  .footer-name { color: #f4f9fc; font-weight: 700; font-size: 13px; letter-spacing: .03em; }
+  .footer-sub { color: var(--verde-claro); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .1em; font-size: 10px; margin-top: 2px; }
+  .footer-links { display: flex; gap: 22px; }
+  .footer-links a { color: #f4f9fc; font-weight: 200; font-size: 14px; text-decoration: none; transition: color .15s; }
+  .footer-links a:hover { color: var(--verde-claro); }
+  .footer-divider { border-top: 1px solid #2b6b6b; margin: 26px 0 20px; }
+  .footer-legal { color: #a9c9c9; font-size: 11px; line-height: 1.6; max-width: 900px; }
+
+  /* ============ FAQ ============ */
+  .faq { max-width: 760px; margin: 56px auto 0; padding: 0 20px; }
+  .faq-head { text-align: center; margin-bottom: 30px; }
+  .faq-head h2 { color: var(--text); font-family: var(--font-display); font-size: 28px; font-weight: 500; margin: 0; }
+  .faq-item { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+  .faq-q {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    width: 100%; padding: 17px 20px; cursor: pointer; border: 0; background: none;
+    font-family: var(--font-body); font-size: 15px; font-weight: 600; color: var(--text); text-align: left;
+  }
+  .faq-q .chev { color: var(--verde-medio); transition: transform .2s; font-size: 13px; }
+  .faq-item.open .faq-q .chev { transform: rotate(90deg); }
+  .faq-a { display: none; padding: 0 20px 18px; color: var(--text-muted); font-size: 13.5px; line-height: 1.6; }
+  .faq-item.open .faq-a { display: block; animation: step-enter .2s both; }
+
+  /* RESPONSIVE */
+  @media (max-width: 560px) {
+    .hero { padding: 44px 0 40px; }
+    .benefits-grid { grid-template-columns: 1fr; }
+    .pillars { grid-template-columns: 1fr; }
+    .exec-grid { grid-template-columns: 1fr 1fr; }
+    .verdict { flex-direction: column; text-align: center; }
+    .footer-top { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="brand-header">
+    <img class="brand-logo-img" src="https://fincarescorepatrimonial.com.br/logo-fincare.png" alt="Fincare Investimentos">
+    <div class="brand-text">
+      <span class="brand-name">Fincare Investimentos · Safra Invest</span>
+      <span class="brand-tag">Ferramentas de Planejamento Patrimonial</span>
+    </div>
+  </div>
+
+  <!-- STEP 1 - LANDING -->
+  <div class="step visible" id="step1">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="hero-overlay" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <span class="hero-etiqueta">Ferramenta comparativa · Fincare Investimentos</span>
+        <h1 class="hero-titulo">FIIs ou comprar imóvel direto? <span>Veja qual gera mais renda e patrimônio com o mesmo capital.</span></h1>
+        <p class="hero-desc">Em poucos segundos, descubra como o mesmo dinheiro evolui em cada caminho — renda mensal, patrimônio acumulado e custos comparados.</p>
+        <ul class="hero-lista">
+          <li><span class="hero-check">✓</span> O mesmo capital simulado nas duas estratégias.</li>
+          <li><span class="hero-check">✓</span> Patrimônio final, renda mensal e renda acumulada.</li>
+          <li><span class="hero-check">✓</span> Premissas ajustáveis ao seu cenário real.</li>
+        </ul>
+        <div class="hero-bonus"><strong>BÔNUS:</strong> relatório em PDF do comparativo, pronto para compartilhar.</div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="scrollToCalc()">Comparar agora</button>
+        </div>
+      </div>
+      <div class="hero-skyline" aria-hidden="true">
+        <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <g fill="#0a4a52">
+            <path d="M0 120V78h26V60h22v18h18V44h24v34h20V70h26v50z"/>
+            <path d="M180 120V88h22V70h18v18h24V58h26v62z"/>
+            <path d="M400 120V96h20V80h16v16h20V64h22v24h14v32z"/>
+            <path d="M600 120V84h24V70h16v14h22V50h24v70z"/>
+            <path d="M800 120V86h20V72h18v14h22V66h24v54z"/>
+            <path d="M1000 120V90h22V74h18v16h24V58h26v62z"/>
+            <path d="M1200 120V80h24V66h16v14h20V52h24v68z"/>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- CALC CARD -->
+    <div class="card-wrap calc-card" id="calcCard">
+      <div class="card">
+        <div class="calc-kicker">
+          <span class="q-eyebrow">Simulador FIIs × Imóvel Direto</span>
+          <h2 class="q-title">Quanto você tem disponível para começar?</h2>
+          <p class="q-sub">Informe o capital que seria investido em Fundos Imobiliários (FIIs) ou usado na compra do imóvel. O simulador compara as duas trajetórias com o mesmo valor.</p>
+        </div>
+
+        <div class="methodology">
+          <div class="methodology-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke="#2b7e7e" stroke-width="2" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="methodology-text">Comparativo FIIs × Imóveis Diretos · Wealth Management</div>
+        </div>
+
+        <label class="field-block">
+          <span class="field-label">Capital disponível</span>
+          <div class="prefix-input">
+            <span class="prefix">R$</span>
+            <input class="field field-money" type="text" id="capital" placeholder="0" inputmode="decimal">
+          </div>
+        </label>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="calcular()">Comparar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BENEFITS -->
+    <section class="benefits">
+      <div class="benefits-head">
+        <span class="section-kicker">Por que comparar?</span>
+        <h2>Entenda a diferença na prática</h2>
+        <p>Mesmo capital, caminhos diferentes: você decide com números na mesa.</p>
+      </div>
+      <div class="benefits-grid">
+        <div class="benefit-card" style="--cor:#2b7e7e">
+          <div class="benefit-icone">
+            <svg viewBox="0 0 24 24"><path d="M3 17v4M7 17v4M11 17v4M15 17v4M19 17v4M5 11V8M9 11V8M13 11V8M17 11V8M19 11V8M2 17h20M12 8V4h6v11M7 13.5S8.5 11 12 11s5 2.5 5 2.5"/></svg>
+          </div>
+          <h3>Renda todos os meses</h3>
+          <p>Dividendos dos FIIs × aluguel líquido do imóvel, calculados mês a mês no seu horizonte.</p>
+        </div>
+        <div class="benefit-card" style="--cor:#c99a3c">
+          <div class="benefit-icone">
+            <svg viewBox="0 0 24 24"><path d="M4 7h12M4 12h8M4 17h14M13 17l4-4m0 0l-4-4m4 4h-9"/><path d="M4 21V3h16v18"/></svg>
+          </div>
+          <h3>Liquidez e praticidade</h3>
+          <p>FIIs são negociados na bolsa com liquidez diária; o imóvel exige tempo, burocracia e venda demorada.</p>
+        </div>
+        <div class="benefit-card" style="--cor:#5879c8">
+          <div class="benefit-icone">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM9 4h4M10 12v6M14 13v5M8 13v5"/></svg>
+          </div>
+          <h3>Impostos e custos</h3>
+          <p>Compare ITBI, manutenção e vacância do imóvel com a isenção de IR dos dividendos de FIIs.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+      <div class="faq-head">
+        <span class="section-kicker">Dúvidas frequentes</span>
+        <h2>Perguntas comuns</h2>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          Qual gera mais renda mensal: FIIs ou aluguel?
+          <span class="chev">▸</span>
+        </button>
+        <div class="faq-a">Depende das premissas. Nas premissas padrão, os FIIs costumam pagar um dividend yield maior que o aluguel líquido do imóvel (que ainda sofre os efeitos de vacância e manutenção). Use o painel de premissas para simular o seu cenário.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          O simulador considera os impostos?
+          <span class="chev">▸</span>
+        </button>
+        <div class="faq-a">Sim. No imóvel são considerados ITBI/registro, manutenção e vacância. Nos FIIs, os dividendos são isentos de IR para pessoa física. Você pode ajustar as alíquotas no painel de premissas.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          Qual é a principal diferença prática entre os dois?
+          <span class="chev">▸</span>
+        </button>
+        <div class="faq-a">Liquidez e praticidade. Os FIIs são negociados na bolsa com liquidez diária e diversificação, enquanto o imóvel direto é ilíquido, exige burocracia para comprar e vender, e concentra o risco em um único bem.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          Este cálculo é uma recomendação de investimento?
+          <span class="chev">▸</span>
+        </button>
+        <div class="faq-a">Não. A ferramenta tem fins ilustrativos e educacionais. Os resultados dependem das premissas. Consulte um assessor de investimentos para uma análise personalizada e adequada ao seu perfil.</div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- STEP 2 - RESULTADO -->
+  <div class="step" id="step2">
+    <div class="card-wrap">
+      <div class="result-card">
+        <div class="result-head">
+          <span class="result-eyebrow">Resultado</span>
+          <h2 class="result-title">FIIs × Imóvel Direto</h2>
+          <p class="result-msg" id="resultMsg">Com o mesmo capital, simulamos a evolução patrimonial em cada caminho ao longo do horizonte escolhido.</p>
+        </div>
+
+        <!-- VERDICT -->
+        <div class="verdict">
+          <div class="verdict-badge" id="verdictBadge">—<small>caminho</small></div>
+          <div class="verdict-text" id="verdictText"></div>
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="result-summary">
+          <div class="rs-card">
+            <div class="rs-label">Capital investido</div>
+            <div class="rs-value" id="rsCapital">—</div>
+          </div>
+          <div class="rs-card">
+            <div class="rs-label">Horizonte</div>
+            <div class="rs-value" id="rsAnos">—</div>
+          </div>
+          <div class="rs-card">
+            <div class="rs-label">Diferença final</div>
+            <div class="rs-value" id="rsDiff">—</div>
+          </div>
+        </div>
+
+        <!-- PILLARS -->
+        <div class="pillars">
+          <div class="pillar pillar-fii" id="pillarFii">
+            <div class="pillar-tag" id="tagFii">Comparação</div>
+            <div class="pillar-head">
+              <span class="pillar-dot"></span>
+              <span class="pillar-title">Fundos Imobiliários</span>
+            </div>
+            <div class="pillar-stat">
+              <div class="pillar-label">Patrimônio final</div>
+              <div class="pillar-value" id="fiiFinal">—</div>
+              <div class="pillar-sub" id="fiiFinalSub"></div>
+            </div>
+            <div class="pillar-stat">
+              <div class="pillar-label">Renda passiva mensal</div>
+              <div class="pillar-value" id="fiiRenda">—</div>
+              <div class="pillar-sub">dividendos no mês 1</div>
+            </div>
+            <div class="pillar-stat">
+              <div class="pillar-label">Renda acumulada</div>
+              <div class="pillar-value" id="fiiRendaAcum">—</div>
+              <div class="pillar-sub">dividendos recebidos no período</div>
+            </div>
+          </div>
+
+          <div class="pillar pillar-imovel" id="pillarImovel">
+            <div class="pillar-tag" id="tagImovel">Comparação</div>
+            <div class="pillar-head">
+              <span class="pillar-dot"></span>
+              <span class="pillar-title">Imóvel Direto</span>
+            </div>
+            <div class="pillar-stat">
+              <div class="pillar-label">Patrimônio final</div>
+              <div class="pillar-value" id="imoFinal">—</div>
+              <div class="pillar-sub" id="imoFinalSub"></div>
+            </div>
+            <div class="pillar-stat">
+              <div class="pillar-label">Renda passiva mensal</div>
+              <div class="pillar-value" id="imoRenda">—</div>
+              <div class="pillar-sub">aluguel no mês 1</div>
+            </div>
+            <div class="pillar-stat">
+              <div class="pillar-label">Renda acumulada</div>
+              <div class="pillar-value" id="imoRendaAcum">—</div>
+              <div class="pillar-sub">aluguéis recebidos no período</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="chart-card">
+          <div class="legend">
+            <span><span class="dot" style="background:var(--verde-medio)"></span>FIIs (patrimônio + reinvestido)</span>
+            <span><span class="dot" style="background:var(--dourado)"></span>Imóvel (patrimônio + aluguel)</span>
+          </div>
+          <svg id="chartSvg" viewBox="0 0 560 240" style="width:100%;height:auto"></svg>
+        </div>
+
+        <div class="chart-card">
+          <div class="legend">
+            <span><span class="dot" style="background:var(--verde-medio)"></span>FIIs — renda</span>
+            <span><span class="dot" style="background:var(--dourado)"></span>Imóvel — renda</span>
+          </div>
+          <svg id="chartRenda" viewBox="0 0 560 240" style="width:100%;height:auto"></svg>
+        </div>
+
+        <!-- INSIGHTS -->
+        <div class="section-divider">Análise Comparativa</div>
+        <div class="insights">
+          <div class="insight-card" id="insight1">
+            <span class="ico">→</span>
+            <div id="insight1Text"></div>
+          </div>
+          <div class="insight-card" id="insight2">
+            <span class="ico">◆</span>
+            <div id="insight2Text"></div>
+          </div>
+          <div class="insight-card" id="insight3">
+            <span class="ico">⚖</span>
+            <div id="insight3Text"></div>
+          </div>
+        </div>
+
+        <!-- ASSUMPTIONS -->
+        <div class="section-divider">Premissas Utilizadas</div>
+        <div class="assumptions" id="assumptions">
+          <div class="assumptions-title" onclick="toggleAssumptions()">
+            <span>Premissas da simulação</span>
+            <span class="chev">▸</span>
+          </div>
+          <div class="assumptions-body" id="assumptionsBody">
+            <div class="assump-group">
+              <h4>Fundos Imobiliários (FIIs)</h4>
+              <div class="assump-row"><span class="avl">Dividend yield (a.a.)</span><input type="number" step="0.1" id="aFiiDivid" value="9"></div>
+              <div class="assump-row"><span class="avl">Valorização das cotas (a.a.)</span><input type="number" step="0.1" id="aFiiVal" value="4"></div>
+              <div class="assump-row"><span class="avl">Reinvestir dividendos</span><input type="number" id="aFiiReinv" value="100" style="width:58px"></div>
+            </div>
+            <div class="assump-group">
+              <h4>Imóvel Direto</h4>
+              <div class="assump-row"><span class="avl">Rentabilidade do aluguel (a.a.)</span><input type="number" step="0.1" id="aImoAlug" value="6"></div>
+              <div class="assump-row"><span class="avl">Valorização do imóvel (a.a.)</span><input type="number" step="0.1" id="aImoVal" value="4"></div>
+              <div class="assump-row"><span class="avl">Vacância (dessaz. utilizada)</span><input type="number" id="aImoVac" value="4" style="width:58px"></div>
+            </div>
+            <div class="assump-group">
+              <h4>Impostos & Custos</h4>
+              <div class="assump-row"><span class="avl">ITBI / registro (imóvel)</span><input type="number" step="0.1" id="aImoItbi" value="3"></div>
+              <div class="assump-row"><span class="avl">Manutenção (imóvel, a.a.)</span><input type="number" step="0.1" id="aImoMant" value="1"></div>
+              <div class="assump-row"><span class="avl">IR sobre dividendos</span><input type="number" id="aFiiIr" value="0" style="width:58px"></div>
+              <div class="assump-row"><span class="avl">IR sobre aluguel</span><input type="number" id="aImoIr" value="0" style="width:58px"></div>
+            </div>
+            <div class="assump-group">
+              <h4>Geral</h4>
+              <div class="assump-row"><span class="avl">Horizonte (anos)</span><input type="number" id="aHorizonte" value="20" style="width:58px"></div>
+            </div>
+            <div style="grid-column:1/-1;">
+              <button class="btn btn-ghost" style="width:100%; padding:10px;" onclick="recalcular()">Recalcular com novas premissas</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <a class="internal-card-link" id="ctaBtn" href="#" target="_blank">
+          Agendar Diagnóstico Completo
+        </a>
+
+        <!-- SHARE -->
+        <div class="section-divider">Compartilhar Resultado</div>
+        <div class="share-row">
+          <a class="share-btn share-whatsapp" id="shareWhatsapp" href="#" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Enviar via WhatsApp
+          </a>
+          <a class="share-btn share-email" id="shareEmail" href="#" target="_blank">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            Enviar por E-mail
+          </a>
+        </div>
+        <button class="pdf-btn" id="pdfBtn" onclick="gerarPDF()">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          Baixar Relatório PDF
+        </button>
+      </div>
+
+      <button class="btn-refazer" onclick="goStep(1)">← Nova simulação</button>
+
+      <p class="disclaimer">Simulação com fins ilustrativos e educacionais. Não constitui recomendação de investimento nem garantia de rentabilidade futura. Resultados dependem das premissas adotadas. Consulte um assessor de investimentos para uma análise personalizada.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-logo">
+        <svg width="38" height="38" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="9" fill="#2b7e7e"/><text x="20" y="27" text-anchor="middle" font-family="Fraunces,serif" font-size="19" font-weight="700" fill="#fff">F</text></svg>
+        <div>
+          <div class="footer-name">Fincare Investimentos · Safra Invest</div>
+          <div class="footer-sub">Ferramentas de Planejamento Patrimonial</div>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="#" onclick="return false;">Política de Privacidade</a>
+        <a href="#" onclick="return false;">Termos de Uso</a>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-legal">
+      Fincare Assessoria de Investimentos LTDA · CNPJ 48.387.375/0001-82 · Registrada na CVM (Res. 178) · Preposta do Banco Safra S/A.
+      Este simulador possui fins ilustrativos e educacionais. Não constitui recomendação de investimento nem garantia de rentabilidade
+      futura. Os resultados dependem das premissas informadas e de condições de mercado. Consulte um assessor de investimentos para uma
+      análise personalizada do seu caso.
+    </div>
+  </div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const fmt = v => v.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+const fmtK = v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'mil' : fmt(v);
+
+const parseNum = id => {
+  const v = $(id).value.replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');
+  return parseFloat(v)||0;
+};
+
+const ED = it => it ? Math.max(0, Math.min(100, it)) : 0;
+
+// ---------- SIMULATION ----------
+let lastResult = null;
+
+function readPremissas() {
+  return {
+    fiiDivid: parseNum('aFiiDivid') / 100 || 0.09,
+    fiiVal: parseNum('aFiiVal') / 100 || 0.04,
+    fiiReinv: (parseNum('aFiiReinv') || 100) / 100,
+    imoAlug: parseNum('aImoAlug') / 100 || 0.06,
+    imoVal: parseNum('aImoVal') / 100 || 0.04,
+    imoVac: (parseNum('aImoVac') || 4) / 100,
+    imoItbi: parseNum('aImoItbi') / 100 || 0.03,
+    imoMant: parseNum('aImoMant') / 100 || 0.01,
+    fiiIr: (parseNum('aFiiIr') || 0) / 100,
+    imoIr: (parseNum('aImoIr') || 0) / 100,
+    horizonte: Math.max(1, Math.round(parseNum('aHorizonte')) || 20),
+  };
+}
+
+function simulacao(capital, P) {
+  const anos = P.horizonte;
+  const meses = anos * 12;
+
+  // ---- FII ----
+  const fiiRendM = Math.pow(1 + P.fiiDivid, 1/12) - 1;
+  const fiiValM = Math.pow(1 + P.fiiVal, 1/12) - 1;
+  const fiiReinVM = Math.pow(1 + P.fiiReinv, 1/12) - 1;
+
+  let fiiPat = capital;         // valor da carteira (cotas + dividendos reinvestidos)
+  let fiiRendaMensal1 = 0;
+  let fiiRendaAcum = 0;
+  const fiiTraj = [capital];
+  const fiiRendaTraj = [];
+
+  for (let m = 1; m <= meses; m++) {
+    const dividendo = fiiPat * fiiRendM;
+    const divLiquido = dividendo * (1 - P.fiiIr);
+    const reinvestido = divLiquido * P.fiiReinv;
+    const consumido = divLiquido * (1 - P.fiiReinv);
+    fiiRendaAcum += divLiquido;
+    fiiPat = fiiPat * (1 + fiiValM) + reinvestido;
+    if (m === 1) fiiRendaMensal1 = divLiquido;
+    if (m % 12 === 0) {
+      fiiTraj.push(fiiPat);
+      fiiRendaTraj.push(fiiRendaAcum);
+    }
+  }
+
+  // ---- IMÓVEL DIRETO ----
+  const alugM = Math.pow(1 + P.imoAlug, 1/12) - 1;
+  const valM = Math.pow(1 + P.imoVal, 1/12) - 1;
+  const vacFator = 1 - P.imoVac;
+  const custoCompra = capital * P.imoItbi;
+  const imoInicial = capital;             // valor do imóvel = capital comprado
+  const investidoInicial = capital - custoCompra;
+
+  // two streams: (a) patrimônio imobiliário (valor do imóvel), (b) caixa de aluguéis
+  let imoPat = imoInicial;
+  let imoCaixa = 0;       // aluguéis acumulados (líquidos de manutenção/ITBI), reinvestidos
+  let imoRendaMensal1 = 0;
+  let imoRendaAcum = 0;
+  let imoConsumidoAcum = 0;
+  const imoTraj = [imoInicial];
+  const imoRendaTraj = [];
+
+  for (let m = 1; m <= meses; m++) {
+    // manutenção anual
+    let manut = 0;
+    if (m % 12 === 0) manut = imoPat * P.imoMant;
+    const aluguelBruto = imoPat * alugM * vacFator;
+    const aluguelLiq = aluguelBruto * (1 - P.imoIr);
+    imoRendaAcum += aluguelLiq;
+    imoCaixa += aluguelLiq;
+    imoPat = imoPat * (1 + valM) - manut;
+    if (m === 1) imoRendaMensal1 = aluguelLiq;
+    if (m % 12 === 0) {
+      imoTraj.push(imoPat + imoCaixa);
+      imoRendaTraj.push(imoRendaAcum);
+    }
+  }
+
+  const fiiFinal = fiiPat;
+  const imoFinal = imoPat + imoCaixa + investidoInicial - (capital - imoInicial) + (P.imoItbi>0 ? 0 : 0);
+
+  return {
+    fii: {
+      patFinal: fiiFinal,
+      rendaMensal: fiiRendaMensal1,
+      rendaAcum: fiiRendaAcum,
+      traj: fiiTraj,
+      rendaTraj: fiiRendaTraj,
+    },
+    imovel: {
+      patFinal: imoFinal,
+      rendaMensal: imoRendaMensal1,
+      rendaAcum: imoRendaAcum,
+      traj: imoTraj,
+      rendaTraj: imoRendaTraj,
+    },
+    capital, anos,
+  };
+}
+
+// ---------- RENDER ----------
+function renderChart(svgId, trajFii, trajImo) {
+  const svg = $(svgId);
+  const W = 560, H = 240, PAD_L = 58, PAD_R = 14, PAD_T = 12, PAD_B = 30;
+  const cw = W - PAD_L - PAD_R, ch = H - PAD_T - PAD_B;
+  const maxY = Math.max(...trajFii, ...trajImo) * 1.08 || 1;
+  const now = new Date();
+
+  const x = i => PAD_L + (i/(trajFii.length-1||1))*cw;
+  const y = v => PAD_T + ch - (v/maxY)*ch;
+
+  let html = '';
+  for (let i = 0; i <= 4; i++) {
+    const yy = PAD_T + (i/4)*ch;
+    html += `<line x1="${PAD_L}" y1="${yy}" x2="${W-PAD_R}" y2="${yy}" stroke="#d9e4e4" stroke-width="0.5"/>`;
+    html += `<text x="${PAD_L-8}" y="${yy+4}" text-anchor="end" font-size="10" fill="#5c7278">${fmtK(maxY*(1-i/4))}</text>`;
+  }
+  const step = Math.max(1, Math.floor(trajFii.length/9));
+  for (let i = 0; i < trajFii.length; i += step) {
+    html += `<text x="${x(i)}" y="${H-6}" text-anchor="middle" font-size="10" fill="#5c7278">${now.getFullYear()+i}</text>`;
+  }
+
+  function line(traj, color, width) {
+    let p = `M ${x(0)} ${y(traj[0])}`;
+    for (let i = 1; i < traj.length; i++) p += ` L ${x(i)} ${y(traj[i])}`;
+    return `<path d="${p}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linejoin="round"/>`;
+  }
+  function area(traj, color) {
+    let p = `M ${x(0)} ${y(traj[0])}`;
+    for (let i = 1; i < traj.length; i++) p += ` L ${x(i)} ${y(traj[i])}`;
+    p += ` L ${x(traj.length-1)} ${PAD_T+ch} L ${x(0)} ${PAD_T+ch} Z`;
+    return `<path d="${p}" fill="${color}" opacity="0.12"/>`;
+  }
+
+  html = `<defs></defs>` + html +
+    area(trajFii, '#2b7e7e') + area(trajImo, '#c99a3c') +
+    line(trajFii, '#2b7e7e', 2.5) + line(trajImo, '#c99a3c', 2.5);
+
+  svg.innerHTML = html;
+}
+
+function renderFloat(id, v) {
+  $(id).textContent = fmt(v);
+}
+
+// ---------- CALCULATE ----------
+function calcular() {
+  const capital = parseNum('capital');
+  if (capital <= 0) { alert('Informe o capital disponível para investir ou comprar o imóvel.'); return; }
+  recalcResult(capital);
+  goStep(2);
+}
+
+function recalcular() {
+  recalcResult(lastResult ? lastResult.capital : parseNum('capital'));
+}
+
+function recalcResult(capital) {
+  const P = readPremissas();
+  const R = simulacao(capital, P);
+  lastResult = R;
+
+  const fii = R.fii, imo = R.imovel;
+
+  // PILLARS
+  const mult = (v) => (v / (capital || 1)).toFixed(1);
+  $('fiiFinal').textContent = fmt(fii.patFinal);
+  $('fiiFinalSub').textContent = `em ${R.anos} anos · ×${mult(fii.patFinal)} o capital`;
+  $('fiiRenda').textContent = fmt(fii.rendaMensal);
+  $('fiiRendaAcum').textContent = fmt(fii.rendaAcum);
+
+  $('imoFinal').textContent = fmt(imo.patFinal);
+  $('imoFinalSub').textContent = `em ${R.anos} anos · ×${mult(imo.patFinal)} o capital`;
+  $('imoRenda').textContent = fmt(imo.rendaMensal);
+  $('imoRendaAcum').textContent = fmt(imo.rendaAcum);
+
+  // VERDICT
+  const winner = fii.patFinal >= imo.patFinal ? 'fii' : 'imo';
+  const diff = Math.abs(fii.patFinal - imo.patFinal);
+  const badge = $('verdictBadge');
+  if (winner === 'fii') {
+    badge.innerHTML = 'FIIs<small>maior patrimônio</small>';
+    badge.style.background = 'var(--verde-escuro)';
+    $('pillarFii').classList.add('winner'); $('pillarImovel').classList.remove('winner');
+    $('tagFii').textContent = 'Vencedor'; $('tagImovel').textContent = 'Comparação';
+  } else {
+    badge.innerHTML = 'Imóvel<small>maior patrimônio</small>';
+    badge.style.background = 'var(--dourado)';
+    $('pillarImovel').classList.add('winner'); $('pillarFii').classList.remove('winner');
+    $('tagImovel').textContent = 'Vencedor'; $('tagFii').textContent = 'Comparação';
+  }
+  const wName = winner === 'fii' ? 'os FIIs' : 'o imóvel';
+  $('verdictText').innerHTML =
+    `<b>${wName === 'os FIIs' ? 'Fundos Imobiliários' : 'Imóvel direto'} geraram mais patrimônio</b> ao final de ${R.anos} anos` +
+    ` (diferença de ${fmt(diff)}). Confira as premissas abaixo para ajustar cenários.`;
+
+  // SUMMARY
+  $('rsCapital').textContent = fmt(capital);
+  $('rsAnos').textContent = `${R.anos} anos`;
+  $('rsDiff').textContent = fmt(diff);
+
+  // CHARTS
+  renderChart('chartSvg', fii.traj, imo.traj);
+  renderChart('chartRenda', fii.rendaTraj, imo.rendaTraj);
+
+  // INSIGHTS (qualitativos)
+  $('insight1Text').innerHTML =
+    `<b>Renda inicial:</b> os FIIs gerariam <b>${fmt(fii.rendaMensal)}/mês</b> em dividendos,` +
+    ` enquanto o imóvel geraria <b>${fmt(imo.rendaMensal)}/mês</b> em aluguel líquido.`;
+  $('insight2Text').innerHTML =
+    `<b>Liquidez & praticidade:</b> FIIs são negociados na bolsa (liquidez diária, sem dor de cabeça de locatário/vacância).` +
+    ` O imóvel é um ativo ilíquido, com custos de compra (ITBI) e manutenção embutidos.`;
+  $('insight3Text').innerHTML =
+    `<b>Impostos:</b> dividendos de FIIs são <b>isentos de IR</b> para pessoa física;` +
+    ` aluguel é tributado na tabela do IRPF. Ajuste as alíquotas nas premissas para seu caso.`;
+
+  // SHARE
+  const shareText =
+    `🏠 *FIIs × Imóvel Direto* — Comparativo Fincare\n\n` +
+    `💵 Capital: ${fmt(capital)}\n` +
+    `⏳ Horizonte: ${R.anos} anos\n\n` +
+    `📈 *FIIs:* patrimônio final ${fmt(fii.patFinal)} · renda ${fmt(fii.rendaMensal)}/mês\n` +
+    `🏘 *Imóvel:* patrimônio final ${fmt(imo.patFinal)} · renda ${fmt(imo.rendaMensal)}/mês\n\n` +
+    `💰 Vencedor em patrimônio: ${winner === 'fii' ? 'FIIs' : 'Imóvel'}\n\n` +
+    `Simule o seu: ${window.location.href}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+  const emailSubject = encodeURIComponent('Comparativo FIIs × Imóvel Direto');
+  const emailBody = encodeURIComponent(shareText.replace(/\*/g,'').replace(/\n/g,'\r\n'));
+  $('shareWhatsapp').href = whatsappUrl;
+  $('shareEmail').href = `mailto:?subject=${emailSubject}&body=${emailBody}`;
+
+  // CTA de conversão → WhatsApp
+  const ctaMsg = `Olá! Fiz o comparativo FIIs × Imóvel Direto no site da Fincare (capital ${fmt(capital)}) e gostaria de agendar um diagnóstico completo do meu planejamento patrimonial.`;
+  $('ctaBtn').href = `https://wa.me/5511941819794?text=${encodeURIComponent(ctaMsg)}`;
+}
+
+// ---------- NAV ----------
+function goStep(n) {
+  const steps = document.querySelectorAll('.step');
+  steps.forEach((s, i) => s.classList.toggle('visible', (i + 1) === n));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function scrollToCalc() {
+  $('calcCard').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function toggleAssumptions() {
+  $('assumptions').classList.toggle('open');
+}
+
+// ---------- PDF ----------
+function gerarPDF() {
+  // lightweight: reuse the result card via html2canvas
+  // rebuild a compact page
+  const R = lastResult;
+  if (!R) return;
+  const fii = R.fii, imo = R.imovel;
+  const winner = fii.patFinal >= imo.patFinal ? 'FIIs' : 'Imóvel';
+
+  const now = new Date();
+  const html = `
+  <div style="width:794px;padding:40px 48px;background:#fff;color:#0b2a32;font-family:'Manrope',sans-serif;box-sizing:border-box;">
+    <div style="display:flex;align-items:center;gap:14px;border-bottom:2px solid #9fc4c7;padding-bottom:16px;margin-bottom:20px;">
+      <svg width="40" height="40"><rect width="40" height="40" rx="8" fill="#003b49"/><text x="20" y="26" text-anchor="middle" font-family="Fraunces,serif" font-size="18" font-weight="700" fill="#fff">F</text></svg>
+      <div style="flex:1;"><div style="font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:#003b49;">Fincare Investimentos · Safra Invest</div><div style="font-size:10px;color:#5c7278;text-transform:uppercase;">Ferramentas de Planejamento Patrimonial</div></div>
+    </div>
+    <div style="font-size:18px;font-weight:700;color:#003b49;">Comparativo FIIs × Imóvel Direto</div>
+    <div style="font-size:12px;color:#5c7278;margin-bottom:16px;">Gerado em ${now.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})} · Capital de ${fmt(R.capital)} · Horizonte de ${R.anos} anos</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+      <div style="border:2px solid #2b7e7e;border-radius:10px;padding:16px;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#2b7e7e;font-weight:600;margin-bottom:8px;">Fundos Imobiliários</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:#003b49;">Patrimônio final: ${fmt(fii.patFinal)}</div>
+        <div style="font-size:11px;color:#5c7278;">Renda mensal: ${fmt(fii.rendaMensal)} · Renda acumulada: ${fmt(fii.rendaAcum)}</div>
+      </div>
+      <div style="border:2px solid #c99a3c;border-radius:10px;padding:16px;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#a3762a;font-weight:600;margin-bottom:8px;">Imóvel Direto</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:#003b49;">Patrimônio final: ${fmt(imo.patFinal)}</div>
+        <div style="font-size:11px;color:#5c7278;">Renda mensal: ${fmt(imo.rendaMensal)} · Renda acumulada: ${fmt(imo.rendaAcum)}</div>
+      </div>
+    </div>
+    <div style="background:#eaf2f1;border:1px solid #d6e6dc;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#003b49;font-weight:600;">
+      ✓ Maior patrimônio ao final: <span style="color:#2b7e7e;">${winner}</span> (${fmt(Math.abs(fii.patFinal-imo.patFinal))} de diferença)
+    </div>
+    <div style="border:1px solid #d9e4e4;border-radius:8px;padding:14px;background:#f4f9fc;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:#003b49;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Observações de assessoria</div>
+      <div style="font-size:11px;color:#5c7278;line-height:1.6;">
+        Dividendos de FIIs são isentos de IR para PF à época do relatório; aluguel é tributado no IRPF.
+        FIIs oferecem liquidez diária e diversificação; o imóvel direto é ilíquido e sujeito a custos de compra (ITBI), manutenção e vacância.
+        A simulação depende das premissas adotadas.
+      </div>
+    </div>
+    <div style="border-top:2px solid #9fc4c7;padding-top:12px;font-size:8px;color:#5c7278;line-height:1.4;">
+      Simulação com fins ilustrativos e educacionais. Não constitui recomendação de investimento nem garantia de rentabilidade futura.
+      Fincare Assessoria de Investimentos LTDA · CNPJ 48.387.375/0001-82 · Registrada na CVM (Res. 178) · Preposta do Banco Safra S/A.
+    </div>
+  </div>`;
+
+  const container = $('pdfTmp') || (() => {
+    const d = document.createElement('div'); d.id = 'pdfTmp';
+    d.style.cssText = 'position:fixed;left:-9999px;top:0;background:#fff;z-index:-1;';
+    document.body.appendChild(d); return d;
+  })();
+  container.innerHTML = html;
+
+  setTimeout(() => {
+    html2canvas(container.firstElementChild, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false })
+      .then(canvas => {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const img = canvas.toDataURL('image/png');
+        const w = pdf.internal.pageSize.getWidth();
+        const h = (canvas.height * w) / canvas.width;
+        pdf.addImage(img, 'PNG', 0, 0, w, h);
+        pdf.save('comparativo-fii-imovel.pdf');
+      });
+  }, 120);
+}
+
+// ---------- INPUT FORMAT ----------
+['capital'].forEach(id => {
+  $(id).addEventListener('input', function() {
+    let v = this.value.replace(/\D/g,'');
+    if(v) v = parseInt(v).toLocaleString('pt-BR');
+    this.value = v;
+  });
+});
+
+document.querySelectorAll('input').forEach(input => {
+  input.addEventListener('keydown', e => {
+    if(e.key === 'Enter' && input.closest('#step1')) {
+      const btn = input.closest('.step').querySelector('.btn-primary');
+      if(btn) btn.click();
+    }
+  });
+});
+</script>
+</body>
+</html>
