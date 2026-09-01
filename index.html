@@ -348,6 +348,37 @@
   }
   .pdf-btn:hover { background: #002833; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
 
+  /* LEAD CAPTURE */
+  .lead-box {
+    border: 1.5px solid var(--verde-medio); background: var(--verde-claro-bg);
+    border-radius: 12px; padding: 20px 18px; margin: 22px 0 8px;
+  }
+  .lead-box .lead-title {
+    font-family: var(--font-display); font-size: 17px; font-weight: 600; color: var(--verde-escuro);
+    margin-bottom: 4px;
+  }
+  .lead-box .lead-sub { font-size: 12.5px; color: var(--verde-escuro); opacity: .85; margin-bottom: 16px; line-height: 1.5; }
+  .lead-field { margin-bottom: 12px; display: block; }
+  .lead-field label {
+    color: var(--verde-escuro); font-family: var(--font-mono); letter-spacing: .02em;
+    margin-bottom: 5px; font-size: 11.5px; display: block;
+  }
+  .lead-field input {
+    border: 1px solid #cfe2da; background: var(--surface); width: 100%; color: var(--text);
+    font-family: var(--font-mono); border-radius: 8px; outline: none;
+    padding: 11px 13px; font-size: 14px; transition: border-color .15s;
+  }
+  .lead-field input:focus { border-color: var(--verde-medio); }
+  .lead-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 13px 14px; border-radius: 8px; font-size: 14px; font-weight: 700;
+    font-family: var(--font-body); cursor: pointer; border: none;
+    background: linear-gradient(135deg, #25d366, #1da851); color: #fff; transition: all .15s;
+  }
+  .lead-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(37,211,102,.35); }
+  .lead-note { font-size: 11px; color: var(--verde-escuro); opacity: .7; margin-top: 10px; line-height: 1.4; text-align: center; }
+  .lead-error { color: #a3302a; font-size: 12px; margin-top: 8px; font-weight: 600; display: none; }
+
   /* ============ LANDING / HERO ============ */
   .hero {
     position: relative; overflow: hidden;
@@ -544,8 +575,8 @@
       <div class="card">
         <div class="calc-kicker">
           <span class="q-eyebrow">Simulador FIIs × Imóvel Direto</span>
-          <h2 class="q-title">Quanto você tem disponível para começar?</h2>
-          <p class="q-sub">Informe o capital que seria investido em Fundos Imobiliários (FIIs) ou usado na compra do imóvel. O simulador compara as duas trajetórias com o mesmo valor.</p>
+          <h2 class="q-title">Onde é melhor colocar seu dinheiro: FIIs ou imóvel?</h2>
+          <p class="q-sub">Responda rápido e veja, em poucos segundos, qual caminho gera mais renda e patrimônio para o <b>seu</b> cenário. Todas as respostas são usadas apenas para personalizar a simulação.</p>
         </div>
 
         <div class="methodology">
@@ -556,7 +587,33 @@
         </div>
 
         <label class="field-block">
-          <span class="field-label">Capital disponível</span>
+          <span class="field-label">Qual é o seu objetivo principal?</span>
+          <div class="select-wrap">
+            <select id="objetivo">
+              <option value="renda" selected>Gerar renda mensal agora</option>
+              <option value="crescimento">Crescer o patrimônio no longo prazo</option>
+              <option value="aposentadoria">Planejar a aposentadoria</option>
+              <option value="primeiro_imovel">Comprar meu primeiro imóvel</option>
+              <option value="diversificar">Diversificar meu investimento</option>
+              <option value="simplesmente">Ainda estou decidindo — quero entender</option>
+            </select>
+          </div>
+        </label>
+
+        <label class="field-block">
+          <span class="field-label">Pretende manter esse capital investido por quanto tempo?</span>
+          <div class="select-wrap">
+            <select id="prazo">
+              <option value="curto" selected>Até 5 anos</option>
+              <option value="medio">De 5 a 10 anos</option>
+              <option value="longo">De 10 a 20 anos</option>
+              <option value="muito_longo">Mais de 20 anos</option>
+            </select>
+          </div>
+        </label>
+
+        <label class="field-block">
+          <span class="field-label">Capital disponível para investir</span>
           <div class="prefix-input">
             <span class="prefix">R$</span>
             <input class="field field-money" type="text" id="capital" placeholder="0" inputmode="decimal">
@@ -564,7 +621,7 @@
         </label>
 
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="calcular()">Comparar</button>
+          <button class="btn btn-primary" onclick="calcular()">Comparar agora</button>
         </div>
       </div>
     </div>
@@ -842,6 +899,30 @@
           </div>
         </div>
 
+        <!-- LEAD CAPTURE -->
+        <div class="lead-box" id="leadBox">
+          <div class="lead-title">Receba seu relatório em PDF</div>
+          <div class="lead-sub">Deixe seu contato para que um assessor da Fincare envie o comparativo completo em PDF, com orientações para o seu caso.</div>
+          <label class="lead-field">
+            <label>Seu nome</label>
+            <input type="text" id="leadNome" placeholder="Ex.: Maria da Silva" autocomplete="name">
+          </label>
+          <label class="lead-field">
+            <label>E-mail</label>
+            <input type="email" id="leadEmail" placeholder="voce@email.com" autocomplete="email" inputmode="email">
+          </label>
+          <label class="lead-field">
+            <label>WhatsApp (com DDD)</label>
+            <input type="tel" id="leadWhats" placeholder="(11) 99999-9999" autocomplete="tel" inputmode="tel">
+          </label>
+          <button class="lead-btn" id="leadBtn" onclick="enviarRelatorio()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Quero receber meu PDF
+          </button>
+          <div class="lead-error" id="leadError">Preencha seu nome, e-mail e WhatsApp para enviarmos o relatório.</div>
+          <div class="lead-note">🔒 Seus dados são usados apenas para a Fincare entrar em contato e enviar o relatório. Nada de spam.</div>
+        </div>
+
         <!-- CTA -->
         <a class="internal-card-link" id="ctaBtn" href="#" target="_blank">
           Agendar Diagnóstico Completo
@@ -1065,9 +1146,27 @@ function renderFloat(id, v) {
 }
 
 // ---------- CALCULATE ----------
+let leadObjetivo = 'renda';
+let leadPrazo = 'curto';
+
+const OBJETIVO_LABEL = {
+  renda: 'Gerar renda mensal agora',
+  crescimento: 'Crescer o patrimônio no longo prazo',
+  aposentadoria: 'Planejar a aposentadoria',
+  primeiro_imovel: 'Comprar meu primeiro imóvel',
+  diversificar: 'Diversificar meu investimento',
+  simplesmente: 'Ainda estou decidindo — quero entender'
+};
+const PRAZO_ANOS = { curto: 5, medio: 10, longo: 15, muito_longo: 20 };
+
 function calcular() {
   const capital = parseNum('capital');
   if (capital <= 0) { alert('Informe o capital disponível para investir ou comprar o imóvel.'); return; }
+  leadObjetivo = $('objetivo').value || 'renda';
+  leadPrazo = $('prazo').value || 'curto';
+  const h = PRAZO_ANOS[leadPrazo] || 20;
+  const hInput = $('aHorizonte');
+  hInput.value = h;
   recalcResult(capital);
   goStep(2);
 }
@@ -1170,6 +1269,47 @@ function toggleAssumptions() {
   $('assumptions').classList.toggle('open');
 }
 
+// ---------- LEAD / ENVIO ----------
+function limparTel(v) {
+  return (v || '').replace(/[^\d]/g, '');
+}
+function validarEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || '').trim());
+}
+
+function enviarRelatorio() {
+  const nome = $('leadNome').value.trim();
+  const email = $('leadEmail').value.trim();
+  const tel = limparTel($('leadWhats').value);
+  const err = $('leadError');
+
+  if (!nome || !validarEmail(email) || tel.length < 10) {
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+
+  const R = lastResult;
+  if (!R) { gerarPDF(); return; }
+  const fii = R.fii, imo = R.imovel;
+  const winner = fii.patFinal >= imo.patFinal ? 'FIIs' : 'Imóvel';
+  const objLabel = OBJETIVO_LABEL[leadObjetivo] || OBJETIVO_LABEL.renda;
+
+  const msg =
+    `Olá, equipe Fincare!\n\n` +
+    `*${nome}* acabou de simular o comparativo FIIs × Imóvel Direto e quer receber o relatório completo em PDF.\n\n` +
+    `*Contato*\n📧 E-mail: ${email}\n📱 WhatsApp: ${$('leadWhats').value.trim()}\n\n` +
+    `*Perfil*\n🎯 Objetivo: ${objLabel}\n⏳ Prazo: ${R.anos} anos\n💵 Capital: ${fmt(R.capital)}\n\n` +
+    `*Resultado*\n📈 FIIs: ${fmt(fii.patFinal)} · renda ${fmt(fii.rendaMensal)}/mês\n` +
+    `🏘 Imóvel: ${fmt(imo.patFinal)} · renda ${fmt(imo.rendaMensal)}/mês\n` +
+    `💰 Maior patrimônio: ${winner}\n\n` +
+    `Pode enviar o PDF do comparativo e entrar em contato para uma orientação personalizada. Obrigado!`;
+
+  // gera o PDF antes de abrir o WhatsApp (pelo lead, para o assessor já ter o arquivo)
+  gerarPDF();
+  window.open(`https://wa.me/5511941819794?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
 // ---------- PDF ----------
 function gerarPDF() {
   // lightweight: reuse the result card via html2canvas
@@ -1178,6 +1318,8 @@ function gerarPDF() {
   if (!R) return;
   const fii = R.fii, imo = R.imovel;
   const winner = fii.patFinal >= imo.patFinal ? 'FIIs' : 'Imóvel';
+  const nomeLead = $('leadNome') ? $('leadNome').value.trim() : '';
+  const objLabelPdf = (OBJETIVO_LABEL && OBJETIVO_LABEL[leadObjetivo]) || '';
 
   const now = new Date();
   const html = `
@@ -1186,8 +1328,9 @@ function gerarPDF() {
       <svg width="40" height="40"><rect width="40" height="40" rx="8" fill="#003b49"/><text x="20" y="26" text-anchor="middle" font-family="Fraunces,serif" font-size="18" font-weight="700" fill="#fff">F</text></svg>
       <div style="flex:1;"><div style="font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:#003b49;">Fincare Investimentos · Safra Invest</div><div style="font-size:10px;color:#5c7278;text-transform:uppercase;">Ferramentas de Planejamento Patrimonial</div></div>
     </div>
-    <div style="font-size:18px;font-weight:700;color:#003b49;">Comparativo FIIs × Imóvel Direto</div>
-    <div style="font-size:12px;color:#5c7278;margin-bottom:16px;">Gerado em ${now.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})} · Capital de ${fmt(R.capital)} · Horizonte de ${R.anos} anos</div>
+    <div style="font-size:18px;font-weight:700;color:#003b49;">Comparativo FIIs × Imóvel Direto${nomeLead ? ` — para ${nomeLead}` : ''}</div>
+    <div style="font-size:12px;color:#5c7278;margin-bottom:8px;">Gerado em ${now.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})} · Capital de ${fmt(R.capital)} · Horizonte de ${R.anos} anos</div>
+    ${objLabelPdf ? `<div style="font-size:11px;color:#5c7278;margin-bottom:16px;">🎯 Objetivo declarado: ${objLabelPdf}</div>` : `<div style="height:16px;"></div>`}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
       <div style="border:2px solid #2b7e7e;border-radius:10px;padding:16px;">
         <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#2b7e7e;font-weight:600;margin-bottom:8px;">Fundos Imobiliários</div>
