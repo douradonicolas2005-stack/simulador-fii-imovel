@@ -19,7 +19,7 @@ Abra `index.html` em qualquer navegador (não requer servidor nem build). É um 
 |---|---|---|
 | Retorno | dividend yield 9% a.a. | aluguel 6% a.a. |
 | Valorização | cota ~4% a.a. (reinveste 100% dos dividendos) | imóvel ~4% a.a. |
-| Custos | — | ITBI 3%, manutenção 1% a.a., vacância 4% |
+| Custos | — | ITBI 4%, manutenção 1% a.a., vacância 8,3% (1 mês/ano), IR sobre aluguel 27,5% |
 
 Horizonte padrão: **20 anos**. Todas as premissas são ajustáveis no painel da página de resultado.
 

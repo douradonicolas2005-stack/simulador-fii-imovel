@@ -226,6 +226,31 @@
   }
   .insight-card .ico { width: 18px; height: 18px; color: var(--verde-medio); flex-shrink: 0; margin-top: 1px; font-weight: 700; display: block; }
 
+  /* CUSTOS EMBUTIDOS (comparativo) */
+  .custos-grid { grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; display: grid; }
+  .custos-card { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; overflow: hidden; }
+  .custos-card.custos-imovel { border-color: #e5cfa4; }
+  .custos-head { padding: 13px 16px; color: #fff; background: var(--verde-medio); }
+  .custos-imovel .custos-head { background: #a3762a; }
+  .custos-head h4 { font-family: var(--font-display); font-size: 15px; font-weight: 600; letter-spacing: .01em; }
+  .custos-head .custos-sub { font-size: 11px; opacity: .85; font-family: var(--font-mono); }
+  .custos-body { padding: 8px 16px 12px; }
+  .custo-row {
+    display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;
+    padding: 9px 0; border-bottom: 1px dashed rgba(0,0,0,.08); font-size: 13px; line-height: 1.4;
+  }
+  .custo-row:last-child { border-bottom: none; }
+  .custo-name { color: var(--text); }
+  .custo-name small { display: block; color: var(--text-muted); font-size: 11px; }
+  .custo-val { color: var(--verde-escuro); font-family: var(--font-mono); font-size: 13px; font-weight: 600; text-align: right; white-space: nowrap; }
+  .custo-val.ok { color: var(--verde-medio); }
+  .custo-resum {
+    margin-top: 10px; padding: 10px 12px; border-radius: 8px;
+    background: var(--verde-claro-bg); color: var(--verde-escuro);
+    font-size: 12.5px; line-height: 1.5;
+  }
+  .custo-resum b { font-family: var(--font-display); }
+
   /* ASSUMPTIONS TABLE */
   .assumptions { border: 1px solid var(--line); border-radius: 9px; margin-bottom: 24px; overflow: hidden; }
   .assumptions-title {
@@ -451,6 +476,7 @@
     .benefits-grid { grid-template-columns: 1fr; }
     .pillars { grid-template-columns: 1fr; }
     .exec-grid { grid-template-columns: 1fr 1fr; }
+    .custos-grid { grid-template-columns: 1fr; }
     .verdict { flex-direction: column; text-align: center; }
     .footer-top { flex-direction: column; align-items: flex-start; }
   }
@@ -718,6 +744,57 @@
           </div>
         </div>
 
+        <!-- CUSTOS EMBUTIDOS -->
+        <div class="section-divider">Custos Embutidos</div>
+        <div class="custos-grid">
+          <div class="custos-card custos-imovel">
+            <div class="custos-head">
+              <h4>🏘 Imóvel Físico</h4>
+              <div class="custos-sub">Custos que o aluguel "esconde"</div>
+            </div>
+            <div class="custos-body">
+              <div class="custo-row">
+                <span class="custo-name">Vacância média<small>1 mês/ano sem aluguel (padrão)</small></span>
+                <span class="custo-val">8,3% a.a.</span>
+              </div>
+              <div class="custo-row">
+                <span class="custo-name">IR sobre o aluguel<small>a maioria esquece disso — FII é isento</small></span>
+                <span class="custo-val">27,5%</span>
+              </div>
+              <div class="custo-row">
+                <span class="custo-name">ITBI + cartório na compra<small>custo de entrada, ~4%</small></span>
+                <span class="custo-val">4%</span>
+              </div>
+              <div class="custo-resum">
+                <b>+ manutenção/reforma (~1% a.a.)</b>, inadimplência (3–5%), corretagem de aluguel (~1 mês) e até <b>6% na venda</b> — tudo descontado do seu retorno real.
+              </div>
+            </div>
+          </div>
+          <div class="custos-card custos-fii">
+            <div class="custos-head">
+              <h4>📈 FIIs</h4>
+              <div class="custos-sub">Vantagens embutidas no dividendo</div>
+            </div>
+            <div class="custos-body">
+              <div class="custo-row">
+                <span class="custo-name">IR sobre dividendos<small>isenção para pessoa física</small></span>
+                <span class="custo-val ok">0% ✅</span>
+              </div>
+              <div class="custo-row">
+                <span class="custo-name">Corretagem para comprar<small>hoje é zero na maioria das corretoras</small></span>
+                <span class="custo-val ok">R$ 0</span>
+              </div>
+              <div class="custo-row">
+                <span class="custo-name">Taxa de administração / fundo<small>já está embutida no dividend yield</small></span>
+                <span class="custo-val ok">já no DY</span>
+              </div>
+              <div class="custo-resum">
+                <b>Seu maior argumento:</b> o dividendo do FII chega <b>isento de IR</b>, sem custos de entrada, venda ou vacância/IPTU/condomínio na sua conta.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- ASSUMPTIONS -->
         <div class="section-divider">Premissas Utilizadas</div>
         <div class="assumptions" id="assumptions">
@@ -736,14 +813,14 @@
               <h4>Imóvel Direto</h4>
               <div class="assump-row"><span class="avl">Rentabilidade do aluguel (a.a.)</span><input type="number" step="0.1" id="aImoAlug" value="6"></div>
               <div class="assump-row"><span class="avl">Valorização do imóvel (a.a.)</span><input type="number" step="0.1" id="aImoVal" value="4"></div>
-              <div class="assump-row"><span class="avl">Vacância (dessaz. utilizada)</span><input type="number" id="aImoVac" value="4" style="width:58px"></div>
+              <div class="assump-row"><span class="avl">Vacância (dessaz. utilizada)</span><input type="number" id="aImoVac" value="8.3" style="width:58px"></div>
             </div>
             <div class="assump-group">
               <h4>Impostos & Custos</h4>
-              <div class="assump-row"><span class="avl">ITBI / registro (imóvel)</span><input type="number" step="0.1" id="aImoItbi" value="3"></div>
+              <div class="assump-row"><span class="avl">ITBI / cartório (imóvel)</span><input type="number" step="0.1" id="aImoItbi" value="4"></div>
               <div class="assump-row"><span class="avl">Manutenção (imóvel, a.a.)</span><input type="number" step="0.1" id="aImoMant" value="1"></div>
-              <div class="assump-row"><span class="avl">IR sobre dividendos</span><input type="number" id="aFiiIr" value="0" style="width:58px"></div>
-              <div class="assump-row"><span class="avl">IR sobre aluguel</span><input type="number" id="aImoIr" value="0" style="width:58px"></div>
+              <div class="assump-row"><span class="avl">IR sobre dividendos (FII)</span><input type="number" id="aFiiIr" value="0" style="width:58px"></div>
+              <div class="assump-row"><span class="avl">IR sobre aluguel</span><input type="number" id="aImoIr" value="27.5" style="width:58px"></div>
             </div>
             <div class="assump-group">
               <h4>Geral</h4>
@@ -822,6 +899,11 @@ const parseNum = id => {
   return parseFloat(v)||0;
 };
 
+const parsePct = id => {
+  let v = $(id).value.replace(',','.').replace(/[^0-9.]/g,'');
+  return parseFloat(v)||0;
+};
+
 const ED = it => it ? Math.max(0, Math.min(100, it)) : 0;
 
 // ---------- SIMULATION ----------
@@ -829,16 +911,16 @@ let lastResult = null;
 
 function readPremissas() {
   return {
-    fiiDivid: parseNum('aFiiDivid') / 100 || 0.09,
-    fiiVal: parseNum('aFiiVal') / 100 || 0.04,
+    fiiDivid: parsePct('aFiiDivid') / 100 || 0.09,
+    fiiVal: parsePct('aFiiVal') / 100 || 0.04,
     fiiReinv: (parseNum('aFiiReinv') || 100) / 100,
-    imoAlug: parseNum('aImoAlug') / 100 || 0.06,
-    imoVal: parseNum('aImoVal') / 100 || 0.04,
-    imoVac: (parseNum('aImoVac') || 4) / 100,
-    imoItbi: parseNum('aImoItbi') / 100 || 0.03,
-    imoMant: parseNum('aImoMant') / 100 || 0.01,
-    fiiIr: (parseNum('aFiiIr') || 0) / 100,
-    imoIr: (parseNum('aImoIr') || 0) / 100,
+    imoAlug: parsePct('aImoAlug') / 100 || 0.06,
+    imoVal: parsePct('aImoVal') / 100 || 0.04,
+    imoVac: (parsePct('aImoVac') || 8.3) / 100,
+    imoItbi: parsePct('aImoItbi') / 100 || 0.04,
+    imoMant: parsePct('aImoMant') / 100 || 0.01,
+    fiiIr: (parsePct('aFiiIr') || 0) / 100,
+    imoIr: (parsePct('aImoIr') || 27.5) / 100,
     horizonte: Math.max(1, Math.round(parseNum('aHorizonte')) || 20),
   };
 }
