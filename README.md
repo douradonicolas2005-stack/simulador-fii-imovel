@@ -34,23 +34,6 @@ Horizonte: definido pelo **prazo** escolhido no formulário (5 / 10 / 15 / 20 an
 
 > ⚠️ Simulação com fins ilustrativos e educacionais. Não constitui recomendação de investimento nem garantia de rentabilidade futura. Consulte um assessor.
 
-## Simulador Tributário (Reforma × Patrimônio)
-
-Módulo em `simulador-tributario/index.html`, publicado em:
-
-```
-https://<usuario>.github.io/simulador-fii-imovel/simulador-tributario/
-```
-
-Compara o impacto dos impostos no patrimônio entre o cenário **hoje (2026)** e o **pós-reforma (2033, fim da transição da CBS/IBS)**, para FIIs, imóvel direto ou misto.
-
-- **FIIs:** a isenção de IR dos dividendos (PF) está mantida pela reforma; o efeito vem da CBS/IBS sobre as receitas do fundo, que reduz o dividendo distribuído durante a transição 2027→2033 (premissa padrão: DY de 9% → 7% a.a.).
-- **Imóvel:** o aluguel segue na tabela do IRPF (até 27,5%); a reforma do consumo não muda essa base.
-- Resultado mostra renda líquida mensal hoje × 2033, patrimônio acumulado, perda estimada no horizonte e um gráfico comparativo.
-- Mesmo fluxo de lead do simulador FIIs × Imóvel: nome/e-mail/WhatsApp → gera PDF e abre o WhatsApp da Fincare.
-
-> ⚠️ A regulamentação da reforma ainda está em andamento. O cenário 2033 usa aproximações salvas como premissas ajustáveis e precisa ser revisado.
-
 ## Deploy (GitHub Pages)
 
 O site é servido diretamente da branch `main` pelo GitHub Pages. Após push, a publicação fica disponível em:
